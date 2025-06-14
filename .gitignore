@@ -3,6 +3,7 @@ data/
 ml_data/
 radiologist_data/
 figs/
+.zip
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
