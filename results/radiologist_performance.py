@@ -192,7 +192,7 @@ def max_confidence(df, component_columns, combined_column):
     df[combined_column] = df[component_columns].max(axis=1)
     return df
 
-cols_to_combine = ['vasdem', 'prion_d', 'ftld_v']#, 'nph_2']
+cols_to_combine = ['vasdem', 'prion_d', 'ftld_v']
 cleaned_data = inclusion_exclusion_combination(cleaned_data, cols_to_combine, 'IncExc_nAD')
 cleaned_data = product_based_combination(cleaned_data, cols_to_combine, 'Prod_nAD')
 cleaned_data = max_confidence(cleaned_data, cols_to_combine, 'Max_nAD')

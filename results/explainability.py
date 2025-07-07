@@ -10,181 +10,52 @@ import nilearn
 from nilearn import plotting
 import seaborn as sns
 import scipy.stats as stats
+import os
+import sys
 
-# which xgboost version is installed?
+repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))  # if notebook is in a subdir
+if repo_root not in sys.path:
+    sys.path.insert(0, repo_root)
+
 print(xgb.__version__)
 # Load the model
-model_path_AD = '/projectnb/vkolagrp/spuduch/xgb_model_AD.joblib'
+model_path_AD = '/Users/spuduch/Research/K_lab/neuroradiology-radiomics/data/model/xgb_model_AD.joblib'
 xgb_model_AD = joblib.load(model_path_AD)
 
-model_path_nAD = '/projectnb/vkolagrp/spuduch/xgb_model_nAD.joblib'
+model_path_nAD = '/Users/spuduch/Research/K_lab/neuroradiology-radiomics/data/model/xgb_model_nAD.joblib'
 xgb_model_nAD = joblib.load(model_path_nAD)
 
-# json_model_path = '/projectnb/vkolagrp/spuduch/xgb_model.json'
-# loaded_model = xgb.Booster({'nthread': 4})  # init model
-# loaded_model.load_model(json_model_path)
+# Load feature configurations
+from utils.load_data import load_feature_configs
 
-demo_features = [
-    'his_NACCAGE', 'his_SEX', 'his_RACE', 'his_HISPANIC', 'his_HISPOR', 'his_EDUC',
-]
-
-region_names = [ 
- '3rd-Ventricle',
- '4th-Ventricle',
- 'Brain-Stem',
- 'CSF',
- 'Cbm_Left_CrusI',
- 'Cbm_Left_CrusII',
- 'Cbm_Left_IX',
- 'Cbm_Left_I_IV',
- 'Cbm_Left_V',
- 'Cbm_Left_VI',
- 'Cbm_Left_VIIIa',
- 'Cbm_Left_VIIIb',
- 'Cbm_Left_VIIb',
- 'Cbm_Left_X',
- 'Cbm_Right_CrusI',
- 'Cbm_Right_CrusII',
- 'Cbm_Right_IX',
- 'Cbm_Right_I_IV',
- 'Cbm_Right_V',
- 'Cbm_Right_VI',
- 'Cbm_Right_VIIIa',
- 'Cbm_Right_VIIIb',
- 'Cbm_Right_VIIb',
- 'Cbm_Right_X',
- 'Cbm_Vermis_IX',
- 'Cbm_Vermis_VI',
- 'Cbm_Vermis_VII',
- 'Cbm_Vermis_VIII',
- 'Cbm_Vermis_X',
- 'Left-Accumbens-area',
- 'Left-Amygdala',
- 'Left-Caudate',
- 'Left-Cerebellum-Cortex',
- 'Left-Cerebellum-White-Matter',
- 'Left-Cerebral-White-Matter',
- 'Left-Hippocampus',
- 'Left-Inf-Lat-Vent',
- 'Left-Lateral-Ventricle',
- 'Left-Pallidum',
- 'Left-Putamen',
- 'Left-Thalamus',
- 'Left-VentralDC',
- 'Left-choroid-plexus',
- 'Right-Accumbens-area',
- 'Right-Amygdala',
- 'Right-Caudate',
- 'Right-Cerebellum-Cortex',
- 'Right-Cerebellum-White-Matter',
- 'Right-Cerebral-White-Matter',
- 'Right-Hippocampus',
- 'Right-Inf-Lat-Vent',
- 'Right-Lateral-Ventricle',
- 'Right-Pallidum',
- 'Right-Putamen',
- 'Right-Thalamus',
- 'Right-VentralDC',
- 'Right-choroid-plexus',
- 'WM-hypointensities',
- 'ctx-lh-caudalanteriorcingulate',
- 'ctx-lh-caudalmiddlefrontal',
- 'ctx-lh-cuneus',
- 'ctx-lh-entorhinal',
- 'ctx-lh-fusiform',
- 'ctx-lh-inferiorparietal',
- 'ctx-lh-inferiortemporal',
- 'ctx-lh-insula',
- 'ctx-lh-isthmuscingulate',
- 'ctx-lh-lateraloccipital',
- 'ctx-lh-lateralorbitofrontal',
- 'ctx-lh-lingual',
- 'ctx-lh-medialorbitofrontal',
- 'ctx-lh-middletemporal',
- 'ctx-lh-paracentral',
- 'ctx-lh-parahippocampal',
- 'ctx-lh-parsopercularis',
- 'ctx-lh-parsorbitalis',
- 'ctx-lh-parstriangularis',
- 'ctx-lh-pericalcarine',
- 'ctx-lh-postcentral',
- 'ctx-lh-posteriorcingulate',
- 'ctx-lh-precentral',
- 'ctx-lh-precuneus',
- 'ctx-lh-rostralanteriorcingulate',
- 'ctx-lh-rostralmiddlefrontal',
- 'ctx-lh-superiorfrontal',
- 'ctx-lh-superiorparietal',
- 'ctx-lh-superiortemporal',
- 'ctx-lh-supramarginal',
- 'ctx-lh-transversetemporal',
- 'ctx-rh-caudalanteriorcingulate',
- 'ctx-rh-caudalmiddlefrontal',
- 'ctx-rh-cuneus',
- 'ctx-rh-entorhinal',
- 'ctx-rh-fusiform',
- 'ctx-rh-inferiorparietal',
- 'ctx-rh-inferiortemporal',
- 'ctx-rh-insula',
- 'ctx-rh-isthmuscingulate',
- 'ctx-rh-lateraloccipital',
- 'ctx-rh-lateralorbitofrontal',
- 'ctx-rh-lingual',
- 'ctx-rh-medialorbitofrontal',
- 'ctx-rh-middletemporal',
- 'ctx-rh-paracentral',
- 'ctx-rh-parahippocampal',
- 'ctx-rh-parsopercularis',
- 'ctx-rh-parsorbitalis',
- 'ctx-rh-parstriangularis',
- 'ctx-rh-pericalcarine',
- 'ctx-rh-postcentral',
- 'ctx-rh-posteriorcingulate',
- 'ctx-rh-precentral',
- 'ctx-rh-precuneus',
- 'ctx-rh-rostralanteriorcingulate',
- 'ctx-rh-rostralmiddlefrontal',
- 'ctx-rh-superiorfrontal',
- 'ctx-rh-superiorparietal',
- 'ctx-rh-superiortemporal',
- 'ctx-rh-supramarginal',
- 'ctx-rh-transversetemporal',
-]
-
-
-
+feature_config_path = '/Users/spuduch/Research/K_lab/neuroradiology-radiomics/data/feature_config.json'
+feature_config = load_feature_configs(feature_config_path)
+# Extract feature lists from the configuration
+vol_features = feature_config['vol_features']
+wmh_features = feature_config['wmh_features']
+imag_features = feature_config['imag_features']
+demo_features = feature_config['demo_features']
+all_features = feature_config['all_features']
 labels = ['AD', 'nAD']
-# imag_features actually needs _vol and _wmh appended to each
-imag_features = []
-vol_features = []
-wmh_features = []
-for region in region_names:
-    imag_features.append(region + '_vol')
-    vol_features.append(region + '_vol')
-    imag_features.append(region + '_wmh')
-    wmh_features.append(region + '_wmh')
-imag_features.append('total_wm_burden')
-# imag_features.append('total_mb_burden')
-imag_features = [f for f in imag_features]
 
-test_data = pd.read_csv('/projectnb/vkolagrp/spuduch/ml_test_data_filtered.csv')
+
+test_data = pd.read_csv('/Users/spuduch/Research/K_lab/neuroradiology-radiomics/data/ml_data/ml_test_data_filtered.csv')
 test_data = test_data.astype({'his_SEX': 'category', 'his_RACE': 'category', 'his_HISPANIC': 'category', 'his_HISPOR': 'category'})
 # set index of test_data to CASEID str replace 'CASE_'
 test_data['CASEID'] = test_data['CASEID'].str.replace('CASE_', '').astype(int)
 test_data.set_index('CASEID', inplace=True)
 # sort the index
 test_data.sort_index(inplace=True)
-print(test_data)
-X_test = test_data[demo_features + imag_features]
+X_test = test_data[all_features]
 y_test = test_data[labels]
 
-data = pd.read_csv('/projectnb/vkolagrp/spuduch/ml_data_filtered.csv')
+data = pd.read_csv('/Users/spuduch/Research/K_lab/neuroradiology-radiomics/data/ml_data/ml_data_filtered.csv')
 data = data.astype({'his_SEX': 'category', 'his_RACE': 'category', 'his_HISPANIC': 'category', 'his_HISPOR': 'category'})
 
 train_VD_idx = data['VD'] 
 train_PD_idx = data['PD']
 train_FTD_idx = data['FTD']
-X_train = data[demo_features + imag_features]
+X_train = data[all_features]
 y_train = data[labels]
 
 superstructures = [
@@ -212,7 +83,7 @@ for superstructure in superstructures:
     wmh_features.insert(0, superstructure + '_wmh')
 
 # load the feature_names_map.json
-json_dict = pd.read_json('/usr4/ugrad/spuduch/RadiologistRatings/dev/train/feature_names_map.json', typ='series').to_dict()
+json_dict = pd.read_json('/Users/spuduch/Research/K_lab/neuroradiology-radiomics/data/feature_names_map.json', typ='series').to_dict()
 
 feature_names_map = {}
 # in the mapping acccount for the suffixes
@@ -225,67 +96,101 @@ for key in json_dict.keys():
     if key + '_vol' in imag_features: feature_names_map[key + '_vol'] = json_dict[key] + ' Volume'
     if key + '_wmh' in imag_features: feature_names_map[key + '_wmh'] = 'WMH Volume in ' + json_dict[key]
 # %% # predict on the test data
-
-# Dmatrix_test = xgb.DMatrix(X_test, enable_categorical=True)
-# Dmatrix_train = xgb.DMatrix(X_train, enable_categorical=True)
-
+X_test = X_test[xgb_model_AD.get_booster().feature_names] # this ensures the features are in the same order as the model was trained on
 y_pred_AD = xgb_model_AD.predict_proba(X_test)[:, 1]
+X_test = X_test[xgb_model_nAD.get_booster().feature_names] # ^^
 y_pred_nAD = xgb_model_nAD.predict_proba(X_test)[:, 1]
 
 y_pred_df = pd.DataFrame({'AD': y_pred_AD, 'nAD': y_pred_nAD})
 y_pred_df
 # %% # Get feature importance for AD
 
-feature_importance_AD = xgb_model_AD.get_booster().get_score(importance_type='weight')
+feature_importance_AD_weight = xgb_model_AD.get_booster().get_score(importance_type='weight')
 feature_importance_AD_gain = xgb_model_AD.get_booster().get_score(importance_type='gain')
 feature_importance_AD_cover = xgb_model_AD.get_booster().get_score(importance_type='cover')
 
-# Sort features by importance
-sorted_importance_AD = sorted(feature_importance_AD.items(), key=lambda x: x[1], reverse=True)
+sorted_importance_AD_weight = sorted(feature_importance_AD_weight.items(), key=lambda x: x[1], reverse=True)
+# Sort features by gain
+sorted_importance_AD_gain = sorted(feature_importance_AD_gain.items(), key=lambda x: x[1], reverse=True)
 
-# Print feature importance
-# for feature, importance in sorted_importance_AD:
-#     print(f"Feature: {feature}, Importance: {importance}")
-
-# save the top 20 toa csv
-top_20_features = sorted_importance_AD[:20]
-top_20_features_df = pd.DataFrame(top_20_features, columns=['Feature', 'Importance'])
-# add the gain and cover columns
-top_20_features_df['Gain'] = [feature_importance_AD_gain.get(f) for f, _ in top_20_features]
-top_20_features_df['Cover'] = [feature_importance_AD_cover.get(f) for f, _ in top_20_features]
+top_k_features_AD = sorted_importance_AD_weight[:50]
+top_k_features_AD_df = pd.DataFrame(top_k_features_AD, columns=['Feature', 'Gain'])
+# add the other columns
+top_k_features_AD_df['Gain'] = [feature_importance_AD_gain.get(f) for f, _ in top_k_features_AD]
+top_k_features_AD_df['Weight'] = [feature_importance_AD_weight.get(f) for f, _ in top_k_features_AD]
+top_k_features_AD_df['Cover'] = [feature_importance_AD_cover.get(f) for f, _ in top_k_features_AD]
 
 # # replace each feature name with the corresponding value in the feature_names_map
-top_20_features_df['Feature'] = [feature_names_map.get(f) for f, _ in top_20_features]
-print(top_20_features_df)
+top_k_features_AD_df['Feature'] = [feature_names_map.get(f) for f, _ in top_k_features_AD]
+print(top_k_features_AD_df)
+
+# where is Left Hippocampus Volume?
+lh_weight = feature_importance_AD_weight.get('Left-Hippocampus_vol')
+lh_gain = feature_importance_AD_gain.get('Left-Hippocampus_vol')
+lh_cover = feature_importance_AD_cover.get('Left-Hippocampus_vol')
+print(f"Left Hippocampus Volume: weight={lh_weight}, gain={lh_gain}, cover={lh_cover}")
 # con
-top_20_features_df.to_csv('/projectnb/vkolagrp/spuduch/top_20_features_AD.csv', index=False)
+# top_k_features_AD_df.to_csv('/projectnb/vkolagrp/spuduch/top_20_features_AD.csv', index=False)
 # %% # Get feature importance for nAD
 
-feature_importance_nAD = xgb_model_nAD.get_booster().get_score(importance_type='weight')
+feature_importance_nAD_weight = xgb_model_nAD.get_booster().get_score(importance_type='weight')
 feature_importance_nAD_gain = xgb_model_nAD.get_booster().get_score(importance_type='gain')
 feature_importance_nAD_cover = xgb_model_nAD.get_booster().get_score(importance_type='cover')
 
 # Sort features by importance
-sorted_importance_nAD = sorted(feature_importance_nAD.items(), key=lambda x: x[1], reverse=True)
+sorted_importance_nAD_weight = sorted(feature_importance_nAD_weight.items(), key=lambda x: x[1], reverse=True)
 
 # Print feature importance
 # for feature, importance in sorted_importance_nAD:
 #     print(f"Feature: {feature}, Importance: {importance}")
 
 # save the top 20 to a csv
-top_20_features = sorted_importance_nAD[:20]
-top_20_features_df = pd.DataFrame(top_20_features, columns=['Feature', 'Importance'])
-# add the gain and cover columns
-top_20_features_df['Gain'] = [feature_importance_nAD_gain.get(f) for f, _ in top_20_features]
-top_20_features_df['Cover'] = [feature_importance_nAD_cover.get(f) for f, _ in top_20_features]
+top_k_features = sorted_importance_nAD_weight[:50]
+top_k_features_df = pd.DataFrame(top_k_features, columns=['Feature', 'Importance'])
+
+top_k_features_df['Weight'] = [feature_importance_nAD_weight.get(f) for f, _ in top_k_features]
+top_k_features_df['Gain'] = [feature_importance_nAD_gain.get(f) for f, _ in top_k_features]
+top_k_features_df['Cover'] = [feature_importance_nAD_cover.get(f) for f, _ in top_k_features]
 
 # # replace each feature name with the corresponding value in the feature_names_map
-top_20_features_df['Feature'] = [feature_names_map.get(f) for f, _ in top_20_features]
-print(top_20_features_df)
-top_20_features_df.to_csv('/projectnb/vkolagrp/spuduch/top_20_features_nAD.csv', index=False)
+top_k_features_df['Feature'] = [feature_names_map.get(f) for f, _ in top_k_features]
+print(top_k_features_df)
+
+# where is Left Hippocampus Volume?
+lh_weight = feature_importance_nAD_weight.get('Left-Hippocampus_vol')
+lh_gain = feature_importance_nAD_gain.get('Left-Hippocampus_vol')
+lh_cover = feature_importance_nAD_cover.get('Left-Hippocampus_vol')
+print(f"Left Hippocampus Volume: weight={lh_weight}, gain={lh_gain}, cover={lh_cover}")
+
+# top_k_features_df.to_csv('/projectnb/vkolagrp/spuduch/top_20_features_nAD.csv', index=False)
+# %%
+# all features importance to a csv
+all_features_importance_AD = pd.DataFrame({
+    'feature_var': list(feature_importance_AD_weight.keys()),
+})
+# add the importance values
+all_features_importance_AD['weight'] = [feature_importance_AD_weight.get(f) for f in all_features_importance_AD['feature_var']]
+all_features_importance_AD['gain'] = [feature_importance_AD_gain.get(f) for f in all_features_importance_AD['feature_var']]
+all_features_importance_AD['cover'] = [feature_importance_AD_cover.get(f) for f in all_features_importance_AD['feature_var']]
+all_features_importance_AD['feature_name'] = [feature_names_map.get(f) for f in all_features_importance_AD['feature_var']]
+all_features_importance_AD
+# save to csv
+# all_features_importance_AD.to_csv('/Users/spuduch/Research/K_lab/neuroradiology-radiomics/data/results_data/all_features_importance_AD.csv', index=False)
+
+# all features importance to a csv for nAD
+all_features_importance_nAD = pd.DataFrame({
+    'feature_var': list(feature_importance_nAD_weight.keys()),
+})
+# add the importance values
+all_features_importance_nAD['weight'] = [feature_importance_nAD_weight.get(f) for f in all_features_importance_nAD['feature_var']]
+all_features_importance_nAD['gain'] = [feature_importance_nAD_gain.get(f) for f in all_features_importance_nAD['feature_var']]
+all_features_importance_nAD['cover'] = [feature_importance_nAD_cover.get(f) for f in all_features_importance_nAD['feature_var']]
+all_features_importance_nAD['feature_name'] = [feature_names_map.get(f) for f in all_features_importance_nAD['feature_var']]
+# save to csv
+# all_features_importance_nAD.to_csv('/Users/spuduch/Research/K_lab/neuroradiology-radiomics/data/results_data/all_features_importance_nAD.csv', index=False)
 # %% # set up nilearn plotting info
 # Path to the .stats file
-stats_file_path = '/projectnb/vkolagrp/spuduch/mni/fastsurfer/stats/aseg+DKT.stats'
+stats_file_path = '/Users/spuduch/Research/K_lab/neuroradiology-radiomics/data/mni-template/fastsurfer/stats/aseg+DKT.stats'
 
 # Load the .stats file into a DataFrame
 stats_df = pd.read_csv(stats_file_path, sep=r'\s+', comment='#', header=None)
@@ -295,7 +200,7 @@ stats_df = stats_df.drop(columns=['Index', 'Unknown1', 'Unknown2', 'Unknown3', '
 stats_dict = dict(zip(stats_df['RegionName'], stats_df['LabelID']))
 
 # cerebellum_stats_file_path
-cerebellum_stats_file_path = '/projectnb/vkolagrp/spuduch/mni/fastsurfer/stats/cerebellum.CerebNet.stats'
+cerebellum_stats_file_path = '/Users/spuduch/Research/K_lab/neuroradiology-radiomics/data/mni-template/fastsurfer/stats/cerebellum.CerebNet.stats'
 cerebellum_stats_df = pd.read_csv(cerebellum_stats_file_path, sep=r'\s+', comment='#', header=None)
 cerebellum_stats_df.columns = ['Index', 'LabelID', 'Unknown1', 'Unknown2', 'RegionName', 'Unknown4', 'Unknown5', 'Unknown6', 'Unknown7', 'Unknown3']
 cerebellum_stats_df = cerebellum_stats_df.drop(columns=['Index', 'Unknown1', 'Unknown2', 'Unknown3', 'Unknown4', 'Unknown5', 'Unknown6', 'Unknown7'])
@@ -305,7 +210,7 @@ for i, row in cerebellum_stats_df.iterrows():
     stats_dict[row['RegionName']] = row['LabelID']
 
 print(stats_dict)
-atlas_path = '/projectnb/vkolagrp/spuduch/mni/fastsurfer/mri/aparc.DKTatlas+aseg.deep.mgz'
+atlas_path = '/Users/spuduch/Research/K_lab/neuroradiology-radiomics/data/mni-template/fastsurfer/mri/aparc.DKTatlas+aseg.deep.mgz'
 atlas_img = nib.load(atlas_path)
 
 atlas_data = atlas_img.get_fdata()
@@ -320,13 +225,13 @@ for feature in vol_features:
     # print(feature[:-4])
     atlas_index = stats_dict.get(feature[:-4])
     # print(atlas_index)
-    AD_atlas_heatmap_vol[np.isin(atlas_data, atlas_index)] = feature_importance_AD.get(feature)
+    AD_atlas_heatmap_vol[np.isin(atlas_data, atlas_index)] = feature_importance_AD_weight.get(feature)
 
 # Create a new Nifti image with the modified data
 AD_atlas_heatmap_vol_img = nib.Nifti1Image(AD_atlas_heatmap_vol, atlas_img.affine, atlas_img.header)
 
 # Save the modified atlas image
-AD_atlas_heatmap_vol_img_path = '/projectnb/vkolagrp/spuduch/AD_atlas_heatmap_vol_img.mgz'
+AD_atlas_heatmap_vol_img_path = '/Users/spuduch/Research/K_lab/neuroradiology-radiomics/.cache/AD_atlas_heatmap_vol_img.mgz'
 nib.save(AD_atlas_heatmap_vol_img, AD_atlas_heatmap_vol_img_path)
 
 # %% # project _wmh feature importance onto the atlas for AD
@@ -337,27 +242,27 @@ for feature in wmh_features:
     # print(feature[:-4])
     atlas_index = stats_dict.get(feature[:-4])
     # print(atlas_index)
-    AD_atlas_heatmap_wmh[np.isin(atlas_data, atlas_index)] = feature_importance_AD.get(feature)
+    AD_atlas_heatmap_wmh[np.isin(atlas_data, atlas_index)] = feature_importance_AD_weight.get(feature)
 
 # Create a new Nifti image with the modified data
 AD_atlas_heatmap_wmh_img = nib.Nifti1Image(AD_atlas_heatmap_wmh, atlas_img.affine, atlas_img.header)
 
 # Save the modified atlas image
-AD_atlas_heatmap_wmh_img_path = '/projectnb/vkolagrp/spuduch/AD_atlas_heatmap_wmh_img.mgz'
+AD_atlas_heatmap_wmh_img_path = '/Users/spuduch/Research/K_lab/neuroradiology-radiomics/.cache/AD_atlas_heatmap_wmh_img.mgz'
 nib.save(AD_atlas_heatmap_wmh_img, AD_atlas_heatmap_wmh_img_path)
 
 # %% # plot
 fig = plt.figure(figsize=(5, 5))
-plotting.plot_stat_map(AD_atlas_heatmap_vol_img, bg_img= '/projectnb/vkolagrp/spuduch/mni/fastsurfer/mri/orig_nu.mgz', 
-    threshold = 75, cmap='viridis',
-    output_file= '/projectnb/vkolagrp/spuduch/plots/AD_vol_feature_weight.svg',
+plotting.plot_stat_map(AD_atlas_heatmap_vol_img, bg_img= '/Users/spuduch/Research/K_lab/neuroradiology-radiomics/data/mni-template/fastsurfer/mri/orig_nu.mgz', 
+    threshold = 75, cmap='inferno',
+    output_file= '/Users/spuduch/Research/K_lab/neuroradiology-radiomics/figs/AD_vol_feature_weight.svg',
     radiological=True
     )
 plt.close(fig)
 fig = plt.figure(figsize=(5, 5))
-plotting.plot_stat_map(AD_atlas_heatmap_wmh_img, bg_img= '/projectnb/vkolagrp/spuduch/mni/fastsurfer/mri/orig_nu.mgz', 
-    threshold = 30, cmap='viridis', 
-    output_file= '/projectnb/vkolagrp/spuduch/plots/AD_wmh_feature_weight.svg',
+plotting.plot_stat_map(AD_atlas_heatmap_wmh_img, bg_img= '/Users/spuduch/Research/K_lab/neuroradiology-radiomics/data/mni-template/fastsurfer/mri/orig_nu.mgz', 
+    threshold = 30, cmap='inferno', 
+    output_file= '/Users/spuduch/Research/K_lab/neuroradiology-radiomics/figs/AD_wmh_feature_weight.svg',
     radiological=True
     )
 plt.close(fig)
@@ -373,7 +278,7 @@ non_img_features = [
     'WM-hypointensities_vol',
 ]
 
-non_img_feature_importance_AD = pd.DataFrame({k: feature_importance_AD[k] for k in non_img_features}, index=[0])
+non_img_feature_importance_AD = pd.DataFrame({k: feature_importance_AD_weight[k] for k in non_img_features}, index=[0])
 
 # rename the columsn with the feature_names_map dict
 non_img_feature_importance_AD.columns = [feature_names_map.get(k) for k in non_img_features]
@@ -382,7 +287,7 @@ plt.figure(figsize=(3, 3))
 sns.heatmap(non_img_feature_importance_AD.T, 
             annot=True, fmt='g', square=True, 
             xticklabels=False, yticklabels=True,
-            cmap = 'viridis', #cbar_kws={},
+            cmap = 'inferno', #cbar_kws={},
             # linecolor='black', linewidth=0.5,
             annot_kws={'fontsize': 7},
 )
@@ -391,7 +296,7 @@ plt.yticks(fontsize=7)
 # cbar.ax.set_xticklabels(cbar.ax.get_xticklabels(), rotation='vertical')
 # plt.xticks(fontsize=7)
 # save the heatmap
-# plt.savefig('/projectnb/vkolagrp/spuduch/plots/AD_nonimg_feature_weight.svg')
+plt.savefig('/Users/spuduch/Research/K_lab/neuroradiology-radiomics/figs/AD_nonimg_feature_weight.svg')
 
 
 # %% # project _vol feature importance onto the atlas for nAD
@@ -404,13 +309,13 @@ for feature in vol_features:
     # print(feature[:-4])
     atlas_index = stats_dict.get(feature[:-4])
     # print(atlas_index)
-    nAD_atlas_heatmap_vol[np.isin(atlas_data, atlas_index)] = feature_importance_nAD.get(feature)
+    nAD_atlas_heatmap_vol[np.isin(atlas_data, atlas_index)] = feature_importance_nAD_weight.get(feature)
 
 # Create a new Nifti image with the modified data
 nAD_atlas_heatmap_vol_img = nib.Nifti1Image(nAD_atlas_heatmap_vol, atlas_img.affine, atlas_img.header)
 
 # Save the modified atlas image
-nAD_atlas_heatmap_vol_img_path = '/projectnb/vkolagrp/spuduch/nAD_atlas_heatmap_vol_img.mgz'
+nAD_atlas_heatmap_vol_img_path = '/Users/spuduch/Research/K_lab/neuroradiology-radiomics/.cache/nAD_atlas_heatmap_vol_img.mgz'
 nib.save(nAD_atlas_heatmap_vol_img, nAD_atlas_heatmap_vol_img_path)
 
 # %% # project _wmh feature importance onto the atlas for nAD
@@ -421,34 +326,34 @@ for feature in wmh_features:
     # print(feature[:-4])
     atlas_index = stats_dict.get(feature[:-4])
     # print(atlas_index)
-    nAD_atlas_heatmap_wmh[np.isin(atlas_data, atlas_index)] = feature_importance_nAD.get(feature)
+    nAD_atlas_heatmap_wmh[np.isin(atlas_data, atlas_index)] = feature_importance_nAD_weight.get(feature)
 
 # Create a new Nifti image with the modified data
 nAD_atlas_heatmap_wmh_img = nib.Nifti1Image(nAD_atlas_heatmap_wmh, atlas_img.affine, atlas_img.header)
 
 # Save the modified atlas image
-nAD_atlas_heatmap_wmh_img_path = '/projectnb/vkolagrp/spuduch/nAD_atlas_heatmap_wmh_img.mgz'
+nAD_atlas_heatmap_wmh_img_path = '/Users/spuduch/Research/K_lab/neuroradiology-radiomics/.cache/nAD_atlas_heatmap_wmh_img.mgz'
 nib.save(nAD_atlas_heatmap_wmh_img, nAD_atlas_heatmap_wmh_img_path)
 
 # %% # plot
 fig = plt.figure(figsize=(5, 5))
-plotting.plot_stat_map(nAD_atlas_heatmap_vol_img, bg_img= '/projectnb/vkolagrp/spuduch/mni/fastsurfer/mri/orig_nu.mgz', 
-    cmap='viridis', threshold = 60,
-    output_file = '/projectnb/vkolagrp/spuduch/plots/nAD_vol_feature_weight.svg',
+plotting.plot_stat_map(nAD_atlas_heatmap_vol_img, bg_img= '/Users/spuduch/Research/K_lab/neuroradiology-radiomics/data/mni-template/fastsurfer/mri/orig_nu.mgz', 
+    cmap='inferno', threshold = 60,
+    output_file = '/Users/spuduch/Research/K_lab/neuroradiology-radiomics/figs/nAD_vol_feature_weight.svg',
     radiological=True
     )
 plt.close(fig)
 fig = plt.figure(figsize=(5, 5))
-plotting.plot_stat_map(nAD_atlas_heatmap_wmh_img, bg_img= '/projectnb/vkolagrp/spuduch/mni/fastsurfer/mri/orig_nu.mgz', 
-    cmap='viridis', threshold = 25,
-    output_file = '/projectnb/vkolagrp/spuduch/plots/nAD_wmh_feature_weight.svg',
+plotting.plot_stat_map(nAD_atlas_heatmap_wmh_img, bg_img= '/Users/spuduch/Research/K_lab/neuroradiology-radiomics/data/mni-template/fastsurfer/mri/orig_nu.mgz', 
+    cmap='inferno', threshold = 25,
+    output_file = '/Users/spuduch/Research/K_lab/neuroradiology-radiomics/figs/nAD_wmh_feature_weight.svg',
     radiological=True
     )
 plt.close(fig)
 # %% # nonimg features heatmap for nAD
 
 # features are the same
-non_img_feature_importance_nAD = pd.DataFrame({k: feature_importance_nAD[k] for k in non_img_features}, index=[0])
+non_img_feature_importance_nAD = pd.DataFrame({k: feature_importance_nAD_weight[k] for k in non_img_features}, index=[0])
 
 # rename columns for better readability
 non_img_feature_importance_nAD.columns = [feature_names_map.get(k) for k in non_img_features]
@@ -457,7 +362,7 @@ non_img_feature_importance_nAD.columns = [feature_names_map.get(k) for k in non_
 plt.figure(figsize=(3, 3))
 sns.heatmap(non_img_feature_importance_nAD.T, 
             annot=True, fmt='g', square=True, xticklabels=False, 
-            cmap = 'viridis', 
+            cmap = 'inferno', 
             # cbar_kws={'label': 'Feature Importance'},           
             # linecolor='black', linewidth=0.5,
             annot_kws={'fontsize': 7}
@@ -465,7 +370,7 @@ sns.heatmap(non_img_feature_importance_nAD.T,
 
 plt.yticks(fontsize=7)
 
-plt.savefig('/projectnb/vkolagrp/spuduch/plots/nAD_nonimg_feature_weight.svg')
+plt.savefig('/Users/spuduch/Research/K_lab/neuroradiology-radiomics/figs/nAD_nonimg_feature_weight.svg')
 
 # %% SHAP computation for train data
 # SHAP explainer
