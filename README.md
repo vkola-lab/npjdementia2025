@@ -1,1 +1,0 @@
-# npjdementia2025
