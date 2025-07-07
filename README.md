@@ -1,4 +1,4 @@
-# Neuroradiology Radiomics Pipeline
+# npjdementia2025
 
 ## Overview
 This repository provides a comprehensive pipeline for preprocessing, feature extraction, modeling, and evaluation of neuroradiology imaging data. It integrates FreeSurfer-based volumetric analysis, white matter hyperintensity (WMH) burden estimation, and machine learning models (XGBoost) for Alzheimer’s disease (AD) and Other Imaging Evident Dementia (OIED) predictions.
